@@ -8,11 +8,7 @@ import static jm.task.core.jdbc.util.Util.getConnection;
 
 public class UserDaoJDBCImpl implements UserDao {
     private Connection connection = getConnection();
-    final String  sql = "CREATE TABLE IF NOT EXISTS Abc (" + // НАЗВАНИЕ ТАБЛИЦЫ
-            "id INT AUTO_INCREMENT PRIMARY KEY, " +
-            "name VARCHAR(45) , " +
-            "lastName VARCHAR(45), " +
-            "age INT )";
+    
     public UserDaoJDBCImpl() {
 
 
@@ -25,7 +21,11 @@ public class UserDaoJDBCImpl implements UserDao {
         try (
                 Statement statement = connection.createStatement()){
             connection.setAutoCommit(false);
-            statement.execute(sql);
+            statement.execute("CREATE TABLE IF NOT EXISTS Abc (" + // НАЗВАНИЕ ТАБЛИЦЫ
+                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                    "name VARCHAR(45) , " +
+                    "lastName VARCHAR(45), " +
+                    "age INT )");
             connection.commit();
             System.out.println("Создана таблица. Метод createUsersTable");
         } catch (SQLException e) {
