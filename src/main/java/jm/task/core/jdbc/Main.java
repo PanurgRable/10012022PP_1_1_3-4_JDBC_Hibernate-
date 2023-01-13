@@ -1,28 +1,22 @@
 package jm.task.core.jdbc;
 
 import jm.task.core.jdbc.dao.UserDao;
-import jm.task.core.jdbc.dao.UserDaoJDBCImpl;
-import jm.task.core.jdbc.model.User;
-import jm.task.core.jdbc.service.UserService;
+import jm.task.core.jdbc.dao.UserDaoHibernateImpl;
 import jm.task.core.jdbc.service.UserServiceImpl;
-import jm.task.core.jdbc.util.Util;
 
 import java.sql.SQLException;
 
 public class Main {
-    public static void main(String[] args) throws SQLException {
-        // реализуйте алгоритм
-        UserDao userDao = new UserDaoJDBCImpl();
-        userDao.createUsersTable();
-
-        userDao.saveUser("Name1", "LastName1", (byte) 20);
-        userDao.saveUser("Name2", "LastName2", (byte) 25);
-        userDao.saveUser("Name3", "LastName3", (byte) 31);
-        userDao.saveUser("Name4", "LastName4", (byte) 38);
-
-        userDao.removeUserById(3);
-        userDao.getAllUsers();
-        userDao.cleanUsersTable();
-        userDao.dropUsersTable();
+    public static void main(String[] args) throws SQLException, ClassNotFoundException {
+        UserDao userService = new UserDaoHibernateImpl();
+        userService.createUsersTable();
+        userService.saveUser("name1", "surname1", (byte) 39);
+        userService.saveUser("name2", "surname2", (byte) 43);
+        userService.saveUser("name3", "surname3", (byte) 39);
+        userService.saveUser("name4", "surname4", (byte) 51);
+        System.out.println();
+        System.out.print(userService.getAllUsers());
+        userService.cleanUsersTable();
+        userService.dropUsersTable();
     }
 }

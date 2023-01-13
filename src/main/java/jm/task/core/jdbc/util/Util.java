@@ -1,41 +1,52 @@
 package jm.task.core.jdbc.util;
 
+
+import jm.task.core.jdbc.model.User;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.service.ServiceRegistry;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import static org.hibernate.cfg.AvailableSettings.DRIVER;
-
 public class Util {
-    // реализуйте настройку соеденения с БД
-    private static final String DRIVER= "com.mysql.cj.jdbc.Driver";
-    private static final String URL = "jdbc:mysql://127.0.0.1:3306/mydbTest";
-    private static final String USERNAME = "root";
+
+    private static final String URL = "jdbc:mysql://localhost:3306/mydbTest";
+    private static final String USER = "root";
     private static final String PASSWORD = "root000000!";
+    private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
 
 
-    private static  Connection connection;
+    public static SessionFactory getSessionFactory() {
+        Configuration configuration = new Configuration()
+                .setProperty("hibernate.connection.url", URL)
+                .setProperty("hibernate.connection.username", USER)
+                .setProperty("hibernate.connection.password", PASSWORD)
+                .setProperty("hibernate.connection.driver_class", DRIVER)
+                .setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect")
+                .addAnnotatedClass(User.class);
 
-    private Util() {
+        ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                .applySettings(configuration.getProperties()).build();
+        SessionFactory sessionFactory = configuration.buildSessionFactory(serviceRegistry);
+        return sessionFactory;
     }
 
-    public static Connection getConnection(){
-
-        try {
-            Class.forName(DRIVER);
-            connection = DriverManager.getConnection(URL,USERNAME, PASSWORD);
-            System.out.println("connect Ok");
-
-        } catch (ClassNotFoundException e) {
-            System.out.println("connect class Util");
-            throw new RuntimeException(e);
-        } catch (SQLException e) {
-            System.out.println("connect class Util");
-            throw new RuntimeException(e);
-        }
-        return connection;
+    public static Connection getMySQLConnection() throws SQLException,
+            ClassNotFoundException {
+        String hostName = "localhost";
+        String dbName = "firstdb";
+        String userName = "root";
+        String password = "admin";
+        return getMySQLConnection(hostName, dbName, userName, password);
     }
-
-
+    public static Connection getMySQLConnection (String hostName, String dbName,
+                                                 String userName, String password) throws SQLException {
+        String connectionURL = String.format("jdbc:mysql://%s:3306/%s", hostName, dbName);
+        return DriverManager.getConnection(connectionURL, userName,
+                password);
+    }
 
 }

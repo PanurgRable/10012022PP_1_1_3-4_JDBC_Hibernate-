@@ -1,133 +1,84 @@
 package jm.task.core.jdbc.dao;
 
 import jm.task.core.jdbc.model.User;
+import jm.task.core.jdbc.util.Util;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import static jm.task.core.jdbc.util.Util.getConnection;
 
 public class UserDaoJDBCImpl implements UserDao {
-    private Connection connection = getConnection();
-    
-    public UserDaoJDBCImpl() {
-
-
-    }
 
     public void createUsersTable() {
-
-
-
-        try (
-                Statement statement = connection.createStatement()){
-            connection.setAutoCommit(false);
-            statement.execute("CREATE TABLE IF NOT EXISTS Abc (" + // НАЗВАНИЕ ТАБЛИЦЫ
-                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
-                    "name VARCHAR(45) , " +
-                    "lastName VARCHAR(45), " +
-                    "age INT )");
-            connection.commit();
-            System.out.println("Создана таблица. Метод createUsersTable");
-        } catch (SQLException e) {
-            e.printStackTrace();
-
-
+        try (Connection connection = Util.getMySQLConnection();) {
+            Statement statement = connection.createStatement();
+            String createTableSQLQuery = "CREATE TABLE IF NOT EXISTS users (`id` INT NOT NULL AUTO_INCREMENT,`name` VARCHAR(45),`last_name` VARCHAR(45),`age` INT, PRIMARY KEY (`id`))";
+            statement.execute(createTableSQLQuery);
+        } catch (ClassNotFoundException | SQLException ignored) {
         }
-
 
 
     }
 
     public void dropUsersTable() {
-
-        try (
-                Statement statement = connection.createStatement()){
-            connection.setAutoCommit(false);
-            statement.execute("DROP TABLE IF EXISTS Abc");
-            connection.commit();
-
-
-            System.out.println("Удалена таблица. метод dropUsersTable ");
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-
+        try (Connection connection = Util.getMySQLConnection();) {
+            Statement statement = connection.createStatement();
+            String dropTableSQLQuery = "DROP TABLE IF EXISTS users";
+            statement.execute(dropTableSQLQuery);
+        } catch (ClassNotFoundException | SQLException ignored) {
         }
-
     }
 
-    public void saveUser(String name, String lastName, byte age) {
-
-        //String sql = "INSERT INTO Abc (name, lastName, age) VALUES (?, ?, ?)"; // НАЗВАНИЕ ТАБЛИЦЫ
-        try (
-                PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO Abc (name, lastName, age) VALUES (?, ?, ?)")) {
-            connection.setAutoCommit(false);
+    public void saveUser(String name, String lastName, byte age)  {
+        String saveUserQuery;
+        PreparedStatement preparedStatement;
+        try (Connection connection = Util.getMySQLConnection()) {
+            saveUserQuery = "INSERT INTO users (name, last_name, age) VALUES (?, ?, ?)";
+            preparedStatement = connection.prepareStatement(saveUserQuery);
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, lastName);
-            preparedStatement.setByte(3, age);
-            preparedStatement.executeUpdate();
-            connection.commit();
-            System.out.println("User с именем " + name + " добавлен в базу данных");
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-
-        }
-
-    }
-
-    public void removeUserById(long id) {
-
-        try (
-                PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM Abc WHERE Id = ?")) {
-            connection.setAutoCommit(false);
-            preparedStatement.setLong(1, id);
+            preparedStatement.setInt(3, age);
             preparedStatement.execute();
-            connection.commit();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("удален пользователь " + id + "метод removeUserById");
-
+            System.out.printf("User с именем %s добавлен в базу данных\n", name);
+        } catch (ClassNotFoundException | SQLException ignored) {
         }
     }
 
-    public List<User> getAllUsers() {
+    public void removeUserById(long id)  {
+        try (Connection connection = Util.getMySQLConnection()) {
+            String removeUserByIDQuery = "DELETE FROM Users WHERE ID=?";
+            PreparedStatement preparedStatement = connection.prepareStatement(removeUserByIDQuery);
+            preparedStatement.setLong(1, id);
+            preparedStatement.execute(removeUserByIDQuery);
+        } catch (ClassNotFoundException | SQLException ignored) {
+        }
+    }
+
+    public List<User> getAllUsers()  {
         List<User> userList = new ArrayList<>();
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM Abc")) {
-            connection.setAutoCommit(false);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()){
-                User user1 = new User();
-                user1.setName(resultSet.getString("name"));
-                user1.setLastName(resultSet.getString("lastName"));
-                user1.setAge(resultSet.getByte("age"));
-                userList.add(user1);
-                System.out.println(userList);
-                System.out.println("Вывод списка метод getAllUsers");
-
+        try (Connection connection = Util.getMySQLConnection()){
+            String sql = "Select ID, NAME, LAST_NAME, AGE from Users";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            ResultSet rs = preparedStatement.executeQuery(sql);
+            while (rs.next()){
+                User user = new User();
+                user.setId((long) rs.getInt(1));
+                user.setName(rs.getString(2));
+                user.setLastName(rs.getString(3));
+                user.setAge((byte) rs.getInt(4));
+                userList.add(user);
             }
-            connection.commit();
-        } catch (SQLException e) {
-            e.printStackTrace();
-
+        } catch (ClassNotFoundException | SQLException ignored) {
         }
         return userList;
     }
 
-    public void cleanUsersTable() {
-        //String sql = "DELETE FROM Abc"; // НАЗВАНИЕ ТАБЛИЦЫ
-        try (Connection connection = getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM Abc")) {
-            connection.setAutoCommit(false);
-            preparedStatement.execute();
-            connection.commit();
-            System.out.println("Удален юзер метод cleanUsersTable");
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-
+    public void cleanUsersTable()  {
+        try (Connection connection = Util.getMySQLConnection()) {
+            Statement statement = connection.createStatement();
+            String truncateQuery = "TRUNCATE TABLE users";
+            statement.execute(truncateQuery);
+        } catch (ClassNotFoundException | SQLException ignored) {
         }
     }
 }
